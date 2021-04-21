@@ -17,4 +17,4 @@ source my-project-env/bin/activate
 
 Runninng the python project:
 
-python Student_Repository_Yash_Limbasiya.py <path_to_files> <univ_name>
+python HW09_Yash_Limbasiya.py <path_to_files> <univ_name>
