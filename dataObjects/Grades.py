@@ -39,3 +39,30 @@ class Grades:
         self.__grade = grade
         
 
+    def convert_gpa(self,grade:str):
+        if grade == 'A':
+            return 4.0
+        elif grade == 'A-':
+            return 3.75
+        elif grade == 'B+':
+            return 3.25
+        elif grade == 'B':
+            return 3.0
+        elif grade == 'B-':
+            return 2.75
+        elif grade == 'C+':
+            return 2.25
+        elif grade == 'C':
+            return 2.0
+        elif "C-":
+            return 0
+        elif' D+':
+            return 0
+        elif 'D':
+            return 0
+        elif 'D-':
+            return 0
+        elif 'F':
+            return 0
+        else:
+            return 0

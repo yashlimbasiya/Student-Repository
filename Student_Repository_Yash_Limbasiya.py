@@ -9,9 +9,10 @@ The initail loader class.
 
 """
 class UniversityLoader:
-    def __init__(self, path: str, name: str):
+    def __init__(self, path: str, name: str, header: int = 0):
         self.__path = path
         self.__university = University(name)
+        self.__header = header
         self.create_uni()
 
     @property
@@ -21,6 +22,14 @@ class UniversityLoader:
     @path.setter
     def path(self, path):
         self.__path = path
+
+    @property
+    def header(self):
+        return self.__header
+
+    @header.setter
+    def header(self, header):
+        self.__header = header        
 
     @property
     def university(self):
@@ -35,15 +44,18 @@ class UniversityLoader:
     Reads the file path and sends the fields back.
 
     """
-    def read_file_custom(self, path: str, fields_num: int, sep: str = '\t'):
+    def read_file_custom(self, path: str, fields_num: int, sep: str = '\t',header='1'):
         try:
             with open(path, 'r') as file_open:
                 count = 0
+                line=''
+                if header == '0':
+                    line = file_open.readline()            
                 while True:
                     line = file_open.readline()
                     count = count + 1
                     if line != '':
-                        line_divided = line.strip('\n').split('\t')
+                        line_divided = line.strip('\n').split(sep)
                         if len(line_divided) == fields_num:  #Checks if all the fields are present.
                             yield line_divided #Returns a single line at a time.
                         else:
@@ -72,7 +84,7 @@ class UniversityLoader:
         student_files = glob.glob(folder_path+"/students.txt")  #Gets all the files with name student.txt
         instructor_files = glob.glob(folder_path+"/instructors.txt") #Gets all the files with name student.txt
         grade_files = glob.glob(folder_path+"/grades.txt") #Gets all the files with name student.txt
-        
+        major_files = glob.glob(folder_path+"/majors.txt") #Gets all the files with name majors.txt
         #Raises the file not found exception.
         if(len(student_files) != 1):
             raise FileNotFoundError(
@@ -85,12 +97,36 @@ class UniversityLoader:
         if(len(grade_files) != 1):
             raise FileNotFoundError("Number of grade files is not equal to 1")
             exit()
+        if(len(major_files) != 1):
+            raise FileNotFoundError("Number of major files is not equal to 1")
+            exit()        
+
+
+        #Reads the major files.
+        if(len(major_files) == 1):
+            major_dict = {}
+            # student_file_path: str = student_files.pop()
+            for major, req, course in self.read_file_custom(path=major_files.pop(), fields_num=3,header=self.header):
+                majorobj = Majors(
+                    major_name=major, required=req, course_name=course)
+                if major_dict.get(major) is None:
+                    course_dict ={}
+                    course_dict[course] = req
+                    major_dict[major] = course_dict
+                else:
+                    course_dict = major_dict[major]
+                    if course_dict.get(course) is not None:
+                        raise KeyError("Duplicate major values.")
+                    else:
+                        course_dict[course] = req
+                        major_dict[major] = course_dict
+            university_obj.major_dict = major_dict #Sets the major dict.            
 
         #Reads the student files.
         if(len(student_files) == 1):
             student_dict = {}
-            student_file_path: str = student_files.pop()
-            for student_id, student_name, student_major in self.read_file_custom(student_file_path, 3):
+            # student_file_path: str = student_files.pop()
+            for student_id, student_name, student_major in self.read_file_custom(path=student_files.pop(), fields_num=3,sep=';',header=self.header):
                 studentobj = Student(
                     student_id=student_id, student_major=student_major, student_name=student_name)
                 if student_dict.get(student_id) is None:
@@ -98,11 +134,13 @@ class UniversityLoader:
                 else:
                     raise KeyError("Duplicate student values.")
             university_obj.student_dict = student_dict #Sets the student dict.
+            university_obj.init_student()
+
 
         #Reads the instructor files
         if(len(instructor_files) == 1):
             instructor_dict = {}
-            for instructor_id, instructor_name, instructor_dept in self.read_file_custom(path=instructor_files.pop(), fields_num=3):
+            for instructor_id, instructor_name, instructor_dept in self.read_file_custom(path=instructor_files.pop(), fields_num=3,sep='|',header=self.header):
                 instructorobj = Instructors(
                     instructor_id=instructor_id, instructor_dept=instructor_dept, instructor_name=instructor_name)
                 if instructor_dict.get(instructor_id) is  None:
@@ -114,7 +152,7 @@ class UniversityLoader:
         #Reads the grade files.
         if len(grade_files) == 1:
             grade_list = []
-            for student_id, course_name, grade_val, instructor_id in self.read_file_custom(path=grade_files.pop(), fields_num=4):
+            for student_id, course_name, grade_val, instructor_id in self.read_file_custom(path=grade_files.pop(), fields_num=4,sep='|',header=self.header):
                 if university_obj.student_dict.get(student_id) is not None and university_obj.instructor_dict.get(instructor_id) is not None:
                     gradeobj = Grades(student_id=student_id, course=course_name,
                                       grade=grade_val, instructor_id=instructor_id)
@@ -127,6 +165,9 @@ class UniversityLoader:
                         f"Instructor with id {instructor_id} not currently present.")
 
             university_obj.grade_list = grade_list
+        
+
+
 
         self.university = university_obj
 
@@ -147,6 +188,8 @@ class UniversityLoader:
             studentlist.append(studentdetail.student_name)
             studentlist.append(studentdetail.student_major)
             studentlist.append(coursesandgrades)
+            studentlist.append(studentdetail.remaining_course)
+            studentlist.append(studentdetail.elective_course)
             listfortable.append(studentlist)
         return listfortable
 
@@ -175,12 +218,27 @@ class UniversityLoader:
 
 
     """
+    Gets the data for majors pretty table.
+    """
+    def get_table_data_majors(self):
+        university_obj = self.university
+        majors_dict = university_obj.init_all_majors()
+        major_list_table = []
+        for major in majors_dict:
+            major_list = []
+            major_list.append(major)
+            major_list.append(majors_dict[major]['R'])
+            major_list.append(majors_dict[major]['E'])
+            major_list_table.append(major_list)
+        return major_list_table
+        
+    """
     Creates the pretty table.
     """
     def create_table(self):
         student_table = PrettyTable()
         student_table.field_names = [
-            "CWID", "NAME", "Major", "COMPLETED COURSES"]
+            "CWID", "NAME", "Major", "COMPLETED COURSES", "REQUIRED COURSES LEFT","ELECTIVE COURSES AVAILABLE"]
         student_table.add_rows(self.get_table_data_student())
         print(student_table)
         instructor_table = PrettyTable()
@@ -188,19 +246,25 @@ class UniversityLoader:
                                         "Dept", "Courses", "Number of students"]
         instructor_table.add_rows(self.get_table_data_instructors())
         print(instructor_table)
+        majors_table = PrettyTable()
+        majors_table.field_names = ["Major", "Required course", "Electives"]
+        majors_table.add_rows(self.get_table_data_majors())
+        print(majors_table)
 
 
 """
 Main function.
 """
 def main(arglist):
-    if len(arglist) != 2:
-        print("The syntax for running the file: \npython hw09.py <file_path> <univ_name>\n")
+    if len(arglist) != 3:
+        print("The syntax for running the file: \npython hw09.py <file_path> <univ_name> <header_flag> (0 - for header / 1 - for no header \n")
     else:
         file_path = arglist[0]
         uni_name = arglist[1]
+        header = arglist[2]
+        
         univ = UniversityLoader(
-            path=file_path, name=uni_name)
+            path=file_path, name=uni_name, header = header)
         univ.create_table()
 
 
