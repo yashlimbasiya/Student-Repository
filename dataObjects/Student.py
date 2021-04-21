@@ -10,8 +10,7 @@ class Student:
 
     @property
     def gpa(self):
-        return self.__student_id
-
+        return self.__gpa
     @gpa.setter
     def gpa(self,gpa):
         self.__gpa = gpa
@@ -21,7 +20,7 @@ class Student:
         return self.__completed_course
 
     @completed_course.setter
-    def gpa(self,completed_course):
+    def completed_course(self,completed_course):
         self.__completed_course = completed_course
 
     @property
@@ -29,24 +28,26 @@ class Student:
         return self.__remaining_course
 
     @remaining_course.setter
-    def gpa(self,remaining_course):
+    def remaining_course(self,remaining_course):
         self.__remaining_course = remaining_course        
 
     @property
     def student_id(self):
         return self.__student_id
 
+    @student_id.setter
+    def student_id(self,id):
+        self.__student_id = id           
+
     @property
     def elective_course(self):
         return self.__elective_course
 
     @elective_course.setter
-    def gpa(self,elective_course):
+    def elective_course(self,elective_course):
         self.__elective_course = elective_course        
 
-    @student_id.setter
-    def student_id(self,id):
-        self.__student_id = id        
+     
 
     @property
     def student_major(self):

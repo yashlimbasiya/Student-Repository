@@ -82,6 +82,8 @@ class University:
                 course_grade = {}
                 course_list = []
                 course_grade[grades.course] = grades.grade
+                gpa_curr = grades.convert_gpa(grades.grade)
+                # print(gpa_curr)
                 # major_dict = self.major_dict[grades.major]
                 # if major_dict.get(grades.course) is not None:
                 if grades.course in self.student_dict[id].remaining_course:
@@ -90,18 +92,26 @@ class University:
                 elif grades.course in self.student_dict[id].elective_course:
                     self.student_dict[id].elective_course.remove(grades.course)
                 course_list.append(course_grade)
+                # self.student_dict[id].gpa = gpa_curr
                 # course_list = course_list.sort()
+                self.student_dict[id].gpa = gpa_curr
                 student_course_dict[id] = course_list
             else:
                 course_list = student_course_dict[id]
                 course_grade = {}
                 course_grade[grades.course] = grades.grade
+                gpa_curr = grades.convert_gpa(grades.grade)
                 if grades.course in self.student_dict[id].remaining_course:
                     self.student_dict[id].remaining_course.remove(
                         grades.course)
                 elif grades.course in self.student_dict[id].elective_course:
                     self.student_dict[id].elective_course.remove(grades.course)
                 course_list.append(course_grade)
+                course_len = len(course_list)
+                gpa_curr = gpa_curr + (self.student_dict[id].gpa * course_len)
+                course_len = course_len + 1
+                gpa_curr = gpa_curr/course_len
+                self.student_dict[id].gpa = gpa_curr
                 # course_list = course_list.sort()
                 student_course_dict[id] = course_list
         for id in student_course_dict:

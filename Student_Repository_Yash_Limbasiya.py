@@ -190,6 +190,7 @@ class UniversityLoader:
             studentlist.append(coursesandgrades)
             studentlist.append(studentdetail.remaining_course)
             studentlist.append(studentdetail.elective_course)
+            studentlist.append(studentdetail.gpa)
             listfortable.append(studentlist)
         return listfortable
 
@@ -238,7 +239,7 @@ class UniversityLoader:
     def create_table(self):
         student_table = PrettyTable()
         student_table.field_names = [
-            "CWID", "NAME", "Major", "COMPLETED COURSES", "REQUIRED COURSES LEFT","ELECTIVE COURSES AVAILABLE"]
+            "CWID", "NAME", "Major", "COMPLETED COURSES", "REQUIRED COURSES LEFT","ELECTIVE COURSES AVAILABLE","GPA"]
         student_table.add_rows(self.get_table_data_student())
         print(student_table)
         instructor_table = PrettyTable()
