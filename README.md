@@ -17,4 +17,4 @@ source my-project-env/bin/activate
 
 Runninng the python project:
 
-python Student_Repository_Yash_Limbasiya.py files_HW10 Stevens 0
+python Student_Repository_HW10_Yash_Limbasiya.py files_HW11 Stevens 0 StudentRepository.db
