@@ -3,16 +3,20 @@ import glob
 from prettytable import PrettyTable
 import sys
 import getopt
+import sqlite3
+from sqlite3 import Error
+
 
 """
 The initail loader class.
 
 """
 class UniversityLoader:
-    def __init__(self, path: str, name: str, header: int = 0):
+    def __init__(self, path: str, name: str, header: int = 0,db:str=""):
         self.__path = path
         self.__university = University(name)
         self.__header = header
+        self.__db = db
         self.create_uni()
 
     @property
@@ -22,6 +26,14 @@ class UniversityLoader:
     @path.setter
     def path(self, path):
         self.__path = path
+
+    @property
+    def db(self):
+        return self.__db
+
+    @db.setter
+    def db(self, path):
+        self.__db = db        
 
     @property
     def header(self):
@@ -76,6 +88,19 @@ class UniversityLoader:
 
 
     """
+    Creates DB Connection.
+    """
+    def create_db_conn(self,db_path):
+        con = None
+        try:
+            con = sqlite3.connect(db_path)
+        except Error as e:
+            print(e)
+        return con
+
+
+
+    """
     Initialializes the university.
     """
     def create_uni(self):
@@ -126,7 +151,7 @@ class UniversityLoader:
         if(len(student_files) == 1):
             student_dict = {}
             # student_file_path: str = student_files.pop()
-            for student_id, student_name, student_major in self.read_file_custom(path=student_files.pop(), fields_num=3,sep=';',header=self.header):
+            for student_id, student_name, student_major in self.read_file_custom(path=student_files.pop(), fields_num=3,sep='\t',header=self.header):
                 studentobj = Student(
                     student_id=student_id, student_major=student_major, student_name=student_name)
                 if student_dict.get(student_id) is None:
@@ -140,7 +165,7 @@ class UniversityLoader:
         #Reads the instructor files
         if(len(instructor_files) == 1):
             instructor_dict = {}
-            for instructor_id, instructor_name, instructor_dept in self.read_file_custom(path=instructor_files.pop(), fields_num=3,sep='|',header=self.header):
+            for instructor_id, instructor_name, instructor_dept in self.read_file_custom(path=instructor_files.pop(), fields_num=3,sep='\t',header=self.header):
                 instructorobj = Instructors(
                     instructor_id=instructor_id, instructor_dept=instructor_dept, instructor_name=instructor_name)
                 if instructor_dict.get(instructor_id) is  None:
@@ -152,7 +177,7 @@ class UniversityLoader:
         #Reads the grade files.
         if len(grade_files) == 1:
             grade_list = []
-            for student_id, course_name, grade_val, instructor_id in self.read_file_custom(path=grade_files.pop(), fields_num=4,sep='|',header=self.header):
+            for student_id, course_name, grade_val, instructor_id in self.read_file_custom(path=grade_files.pop(), fields_num=4,sep='\t',header=self.header):
                 if university_obj.student_dict.get(student_id) is not None and university_obj.instructor_dict.get(instructor_id) is not None:
                     gradeobj = Grades(student_id=student_id, course=course_name,
                                       grade=grade_val, instructor_id=instructor_id)
@@ -233,6 +258,15 @@ class UniversityLoader:
             major_list_table.append(major_list)
         return major_list_table
         
+
+    def student_grades_table_db(self, db_path):
+        con = self.create_db_conn(db_path)
+        cur = con.cursor()
+        cur.execute("select s.Name, s.CWID , g.Grade, g.Course, i.Name as Instructor from Students s join Grades g on s.CWID =g.StudentCWID join Instructors I on g.InstructorCWID = I.CWID order by s.Name")
+        rows = cur.fetchall()
+        return rows
+
+
     """
     Creates the pretty table.
     """
@@ -241,31 +275,38 @@ class UniversityLoader:
         student_table.field_names = [
             "CWID", "NAME", "Major", "COMPLETED COURSES", "REQUIRED COURSES LEFT","ELECTIVE COURSES AVAILABLE","GPA"]
         student_table.add_rows(self.get_table_data_student())
+        print(self.get_table_data_student())
         print(student_table)
         instructor_table = PrettyTable()
         instructor_table.field_names = ["CWID", "NAME",
                                         "Dept", "Courses", "Number of students"]
         instructor_table.add_rows(self.get_table_data_instructors())
+        print(self.get_table_data_instructors())
         print(instructor_table)
         majors_table = PrettyTable()
         majors_table.field_names = ["Major", "Required course", "Electives"]
+        print(self.get_table_data_majors())
         majors_table.add_rows(self.get_table_data_majors())
         print(majors_table)
+        grades_summary = PrettyTable()
+        grades_summary.field_names = ['NAME','CWID','COURSE','GRADE','INSTRUCTOR']
+        grades_summary.add_rows(self.student_grades_table_db(self.db))
+        print(grades_summary)
 
 
 """
 Main function.
 """
 def main(arglist):
-    if len(arglist) != 3:
-        print("The syntax for running the file: \npython hw09.py <file_path> <univ_name> <header_flag> (0 - for header / 1 - for no header \n")
+    if len(arglist) != 4:
+        print("The syntax for running the file: \npython hw09.py <file_path> <univ_name> <header_flag> (0 - for header / 1 - for no header) <db_file_path> \n")
     else:
         file_path = arglist[0]
         uni_name = arglist[1]
         header = arglist[2]
-        
+        db_path = arglist[3]
         univ = UniversityLoader(
-            path=file_path, name=uni_name, header = header)
+            path=file_path, name=uni_name, header = header,db=db_path)
         univ.create_table()
 
 
