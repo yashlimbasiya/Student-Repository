@@ -293,7 +293,7 @@ class UniversityLoader:
         grades_summary.field_names = ['NAME','CWID','COURSE','GRADE','INSTRUCTOR']
         grades_summary.add_rows(self.student_grades_table_db(self.db))
 #         print(self.get_table_data_majors())
-        print("Students grade")
+        print("Students grade table")
         print(grades_summary)
 
 
