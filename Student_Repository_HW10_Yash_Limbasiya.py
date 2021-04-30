@@ -275,22 +275,25 @@ class UniversityLoader:
         student_table.field_names = [
             "CWID", "NAME", "Major", "COMPLETED COURSES", "REQUIRED COURSES LEFT","ELECTIVE COURSES AVAILABLE","GPA"]
         student_table.add_rows(self.get_table_data_student())
-#         print(self.get_table_data_student())
+        print("Student table")
         print(student_table)
         instructor_table = PrettyTable()
         instructor_table.field_names = ["CWID", "NAME",
                                         "Dept", "Courses", "Number of students"]
         instructor_table.add_rows(self.get_table_data_instructors())
-#         print(self.get_table_data_instructors())
+        print("Instructor table")
         print(instructor_table)
         majors_table = PrettyTable()
         majors_table.field_names = ["Major", "Required course", "Electives"]
-#         print(self.get_table_data_majors())
+        print(self.get_table_data_majors())
         majors_table.add_rows(self.get_table_data_majors())
+        print("Major table")
         print(majors_table)
         grades_summary = PrettyTable()
         grades_summary.field_names = ['NAME','CWID','COURSE','GRADE','INSTRUCTOR']
         grades_summary.add_rows(self.student_grades_table_db(self.db))
+        print(self.get_table_data_majors())
+        print("Major table")
         print(grades_summary)
 
 
