@@ -321,7 +321,7 @@ Main function.
 
 def main(arglist):
     if len(arglist) != 4:
-        print("The syntax for running the file: \npython Student_Repository_HW10_Yash_Limbasiya.py <file_path> <univ_name> <header_flag> (0 - for header / 1 - for no header) <db_file_path> \n")
+        print("The syntax for running the file: \npython Student_Repository_HW12_Yash_Limbasiya.py <file_path> <univ_name> <header_flag> (0 - for header / 1 - for no header) <db_file_path> \n")
     else:
         file_path = arglist[0]
         uni_name = arglist[1]
